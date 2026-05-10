@@ -542,11 +542,17 @@ public class TypeGraphToJsonSchemaTransformer
             // The value type determines what additionalProperties accepts
             val valuePropertyDef = convertTypeRef(node.value, graph, definitions)
 
+            val isDefaultStringKey = node.key.let { ref ->
+                ref is TypeRef.Inline && ref.node.let { it is PrimitiveNode && it.kind == PrimitiveKind.STRING }
+            }
+            val propertyNames = if (isDefaultStringKey) null else convertTypeRef(node.key, graph, definitions)
+
             return ObjectPropertyDefinition(
                 type = if (nullable && config.useUnionTypes) OBJECT_OR_NULL_TYPE else OBJECT_TYPE,
                 description = node.description,
                 nullable = getNullableFlag(nullable),
                 additionalProperties = AdditionalPropertiesSchema(valuePropertyDef),
+                propertyNames = propertyNames,
             )
         }
 

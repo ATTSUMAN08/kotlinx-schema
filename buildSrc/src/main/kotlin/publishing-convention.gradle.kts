@@ -1,3 +1,10 @@
+/**
+ * Convention plugin to enable and configure publishing with Maven Publish.
+ * - Configures publishing to the Lavafuse Maven repository
+ * - Sets up POM metadata for all publications
+ * - Enables signing when GPG keys are available
+ * - Automatically publishes sources and documentation (KDoc)
+ */
 plugins {
     id("com.vanniktech.maven.publish")
     signing
@@ -10,12 +17,20 @@ publishing {
             name = "project"
             url = uri(rootProject.layout.buildDirectory.dir("project-repo"))
         }
+        maven {
+            name = "lavafuse"
+            url = uri("https://repo.lavafuse.net/releases")
+            credentials {
+                username = providers.gradleProperty("lavafuseUsername").orNull
+                    ?: System.getenv("LAVAFUSE_USERNAME")
+                password = providers.gradleProperty("lavafusePassword").orNull
+                    ?: System.getenv("LAVAFUSE_PASSWORD")
+            }
+        }
     }
 }
 
 mavenPublishing {
-    publishToMavenCentral(automaticRelease = true)
-
     pom {
         name = providers.gradleProperty("POM_NAME").orElse(project.name).get()
         description =
